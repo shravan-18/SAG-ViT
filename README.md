@@ -85,6 +85,17 @@ python train.py
 ```
 This will load data using `data_loader.py`, initialize the SAG-ViT model (`SAGViTClassifier`), and train and validate the model, saving the best checkpoint and training history. You can adjust hyperparameters (e.g., learning rate, epochs) directly in `train.py`.
 
+**Running Tests**:
+Make sure you have a proper Python environment with the required dependencies installed. Then run:
+```bash
+python -m unittest discover -s tests
+```
+
+or, if you are using `pytest`, you can run:
+```bash
+pytest tests
+```
+
 **Results**  
 We evaluated SAG-ViT on diverse datasets:
 - **CIFAR-10** (natural images)
