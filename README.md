@@ -21,7 +21,7 @@ SAG-ViT consistently outperforms state-of-the-art approaches on diverse benchmar
 The diagram below illustrates our SAG-ViT pipeline, from CNN feature extraction and patching to graph construction, GAT processing, and Transformer-based global reasoning:
 
 <p align="center">
-    <img src="logo/logo.png" width="60%" alt="SAG-ViT Architecture Overview"/>
+    <img src="logo/logo.png" alt="SAG-ViT Architecture Overview">
 </p>
 
 ## Code Structure and Usage
