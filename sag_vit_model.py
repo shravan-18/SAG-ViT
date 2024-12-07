@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from torch_geometric.data import Batch
-from model_components import InceptionV3FeatureExtractor, GATGNN, TransformerEncoder, MLPBlock
+from model_components import EfficientNetV2FeatureExtractor, GATGNN, TransformerEncoder, MLPBlock
 from graph_construction import build_graph_from_patches, build_graph_data_from_patches
 
 ###############################################################################
@@ -34,20 +34,20 @@ class SAGViTClassifier(nn.Module):
     def __init__(
         self,
         patch_size=(4,4),
-        num_classes=15,
+        num_classes=10,
         d_model=64,
-        nhead=8,
-        num_layers=4,
-        dim_feedforward=128,
-        hidden_mlp_features=128,
-        in_channels=12288,  # Derived from patch dimensions and CNN output channels
+        nhead=4,
+        num_layers=2,
+        dim_feedforward=64,
+        hidden_mlp_features=64,
+        in_channels=2560,  # Derived from patch dimensions and CNN output channels
         gcn_hidden=128,
         gcn_out=64
     ):
         super(SAGViTClassifier, self).__init__()
 
         # CNN feature extractor (frozen pre-trained InceptionV3)
-        self.cnn = InceptionV3FeatureExtractor()
+        self.cnn = EfficientNetV2FeatureExtractor()
 
         # Graph Attention Network to process patch embeddings
         self.gcn = GATGNN(in_channels=in_channels, hidden_channels=gcn_hidden, out_channels=gcn_out)

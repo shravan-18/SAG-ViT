@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn, optim
 from tqdm import tqdm
@@ -15,7 +16,7 @@ from data_loader import get_dataloaders
 # The training loop is adapted to implement early stopping and track various metrics.
 #####################################################################
 
-def train_model(model, model_name, train_loader, val_loader, num_epochs, criterion, optimizer, device, patience=8):
+def train_model(model, model_name, train_loader, val_loader, num_epochs, criterion, optimizer, device, patience=8, verbose=True):
     """
     Trains the SAG-ViT model and evaluates it on the validation set.
     Implements early stopping based on validation loss.
@@ -78,7 +79,6 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
         train_prec = precision_score(all_labels, all_preds, average='macro', zero_division=0)
         train_rec = recall_score(all_labels, all_preds, average='macro')
         train_f1 = f1_score(all_labels, all_preds, average='macro')
-        train_auc = roc_auc_score(all_labels, all_probs, multi_class='ovr')
         train_cohen_kappa = cohen_kappa_score(all_labels, all_preds)
         train_mcc = matthews_corrcoef(all_labels, all_preds)
         train_confusion = confusion_matrix(all_labels, all_preds)
@@ -88,7 +88,6 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
         history['train_prec'].append(train_prec)
         history['train_rec'].append(train_rec)
         history['train_f1'].append(train_f1)
-        history['train_auc'].append(train_auc)
         history['train_cohen_kappa'].append(train_cohen_kappa)
         history['train_mcc'].append(train_mcc)
         history['train_confusion_matrix'].append(train_confusion)
@@ -119,7 +118,6 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
         val_prec = precision_score(all_labels, all_preds, average='macro', zero_division=0)
         val_rec = recall_score(all_labels, all_preds, average='macro')
         val_f1 = f1_score(all_labels, all_preds, average='macro')
-        val_auc = roc_auc_score(all_labels, all_probs, multi_class='ovr')
         val_cohen_kappa = cohen_kappa_score(all_labels, all_preds)
         val_mcc = matthews_corrcoef(all_labels, all_preds)
         val_confusion = confusion_matrix(all_labels, all_preds)
@@ -129,14 +127,14 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
         history['val_prec'].append(val_prec)
         history['val_rec'].append(val_rec)
         history['val_f1'].append(val_f1)
-        history['val_auc'].append(val_auc)
         history['val_cohen_kappa'].append(val_cohen_kappa)
         history['val_mcc'].append(val_mcc)
         history['val_confusion_matrix'].append(val_confusion)
 
         # Print epoch summary
-        print(f"Train Loss: {history['train_loss'][-1]:.4f}, Train Acc: {history['train_acc'][-1]:.4f}, "
-              f"Val Loss: {history['val_loss'][-1]:.4f}, Val Acc: {history['val_acc'][-1]:.4f}")
+        if verbose:
+            print(f"Train Loss: {history['train_loss'][-1]:.4f}, Train Acc: {history['train_acc'][-1]:.4f}, "
+                f"Val Loss: {history['val_loss'][-1]:.4f}, Val Acc: {history['val_acc'][-1]:.4f}")
 
         # Early stopping
         current_val_loss = history['val_loss'][-1]
@@ -154,7 +152,7 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
                 return history
 
     model.load_state_dict(best_model_state)
-    torch.save(model.state_dict(), f'{model_name}-best.pth')
+    torch.save(model.state_dict(), f'{model_name}-{num_epochs}_epochs.pth')
 
     return history
 
@@ -162,9 +160,13 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
 if __name__ == "__main__":
     # Example usage:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    train_loader, val_loader = get_dataloaders(data_dir="path/to/data/dir")
+    print(f"Training on device: {device}")
+    data_dir = "data/PlantVillage"
+    num_classes = len(os.listdir(data_dir))
+    # train_loader, val_loader = get_dataloaders(data_dir=data_dir, batch_size=32)
+    train_loader, val_loader = get_dataloaders(data_dir=data_dir, batch_size=4)
 
-    model = SAGViTClassifier().to(device)
+    model = SAGViTClassifier(num_classes=num_classes).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)

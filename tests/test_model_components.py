@@ -1,13 +1,13 @@
 import unittest
 import torch
-from model_components import InceptionV3FeatureExtractor, GATGNN, TransformerEncoder, MLPBlock
+from model_components import EfficientNetV2FeatureExtractor, GATGNN, TransformerEncoder, MLPBlock
 from torch_geometric.data import Data
 
 class TestModelComponents(unittest.TestCase):
-    def test_inception_extractor_output_shape(self):
-        model = InceptionV3FeatureExtractor()
+    def test_efficientnetv2_extractor_output_shape(self):
+        model = EfficientNetV2FeatureExtractor()
         model.eval()
-        x = torch.randn(2, 3, 299, 299)
+        x = torch.randn(2, 3, 224, 224)
         with torch.no_grad():
             features = model(x)
         # Check output shape - depends on inception intermediate layer
@@ -32,7 +32,7 @@ class TestModelComponents(unittest.TestCase):
     def test_transformer_encoder(self):
         # (B, N, D) = (2, 10, 64)
         x = torch.randn(2, 10, 64)
-        encoder = TransformerEncoder(d_model=64, nhead=8, num_layers=2, dim_feedforward=128)
+        encoder = TransformerEncoder(d_model=64, nhead=4, num_layers=2, dim_feedforward=64)
         out = encoder(x)
         # same shape as input
         self.assertEqual(out.shape, (2, 10, 64))
@@ -43,9 +43,9 @@ class TestModelComponents(unittest.TestCase):
         out = mlp(x)
         self.assertEqual(out.shape, (2,10))
 
-    def test_inception_freeze(self):
+    def test_efficientnetv2_freeze(self):
         # Ensure params are frozen
-        model = InceptionV3FeatureExtractor()
+        model = EfficientNetV2FeatureExtractor()
         for param in model.parameters():
             self.assertFalse(param.requires_grad)
 

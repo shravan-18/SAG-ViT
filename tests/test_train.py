@@ -14,8 +14,8 @@ class TestTrain(unittest.TestCase):
 
         # Mock dataloaders with a small dummy dataset
         # Just one batch with a couple of samples
-        train_dataloader = [ (torch.randn(2,3,299,299), torch.tensor([0,1])) ]
-        val_dataloader = [ (torch.randn(2,3,299,299), torch.tensor([0,1])) ]
+        train_dataloader = [ (torch.randn(2,3,224,224), torch.tensor([0,1])) ]
+        val_dataloader = [ (torch.randn(2,3,224,224), torch.tensor([0,1])) ]
 
         model = SAGViTClassifier(num_classes=2)
 
@@ -24,7 +24,7 @@ class TestTrain(unittest.TestCase):
 
         # Test a single epoch training
         history = train_model(model, "TestModel", train_dataloader, val_dataloader, 
-                              num_epochs=1, criterion=criterion, optimizer=mock_optimizer, device=device, patience=2)
+                              num_epochs=1, criterion=criterion, optimizer=mock_optimizer, device=device, patience=2, verbose=False)
         
         # Check if history is properly recorded
         self.assertIn("train_loss", history)
@@ -41,11 +41,11 @@ class TestTrain(unittest.TestCase):
 
         # create a scenario where val loss won't improve
         # first epoch normal, second epoch slightly worse
-        train_dataloader = [ (torch.randn(2,3,299,299), torch.tensor([0,1])) ]
-        val_dataloader = [ (torch.randn(2,3,299,299), torch.tensor([0,1])) ]
+        train_dataloader = [ (torch.randn(2,3,224,224), torch.tensor([0,1])) ]
+        val_dataloader = [ (torch.randn(2,3,224,224), torch.tensor([0,1])) ]
 
         history = train_model(model, "TestModelEarlyStop", train_dataloader, val_dataloader, 
-                              num_epochs=5, criterion=criterion, optimizer=optimizer, device=device, patience=1)
+                              num_epochs=5, criterion=criterion, optimizer=optimizer, device=device, patience=1, verbose=False)
         
         # Should have triggered early stopping before all 5 epochs
         self.assertLessEqual(len(history["train_loss"]), 5)

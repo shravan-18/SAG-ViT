@@ -19,7 +19,7 @@ def get_dataloaders(data_dir="path/to/data/dir", batch_size=512, train_split=0.8
 
     # Image transforms, can be adjusted as per dataset norms
     transform = transforms.Compose([
-        transforms.Resize((299, 299)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
         # Normalization parameters for Inception-based feature extraction
         transforms.Normalize(mean=[0.485, 0.456, 0.406], 

@@ -13,22 +13,28 @@ from torchvision import models
 # 4. An MLP classifier head.
 ###############################################################
 
-class InceptionV3FeatureExtractor(nn.Module):
+class EfficientNetV2FeatureExtractor(nn.Module):
     """
-    Extracts multi-scale, high-fidelity feature maps from images using
-    a pre-trained InceptionV3 network. This corresponds to Section 3.1,
-    where a CNN backbone (here Inception) is used to produce rich feature maps
-    that preserve semantic information at multiple scales.
+    Extracts multi-scale, spatially-rich, and semantically-meaningful feature maps 
+    from images using a pre-trained EfficientNetV2-S model. This corresponds 
+    to Section 3.1, where a CNN backbone (EfficientNetV2-S) is used to produce rich 
+    feature maps that preserve semantic information at multiple scales.
     """
-    def __init__(self):
-        super(InceptionV3FeatureExtractor, self).__init__()
-        inception = models.inception_v3(pretrained=True)
-        inception.eval()
-        # Extract features up to a chosen layer (Mixed_7c) for a rich feature map
-        self.extractor = nn.Sequential(*list(inception.children())[:13])
+    def __init__(self, pretrained=False):
+        super(EfficientNetV2FeatureExtractor, self).__init__()
+        
+        # Load EfficientNetV2-S with pretrained weights
+        efficientnet = models.efficientnet_v2_s(
+            weights="IMAGENET1K_V1" if pretrained else None
+        )
+        
+        # Extract layers up to the last block before downsampling below 16x16
+        self.extractor = nn.Sequential(*list(efficientnet.features.children())[:-2])
+        
         # Freezing the extractor parameters (if desired)
         for param in self.extractor.parameters():
             param.requires_grad = False
+
 
     def forward(self, x):
         """
