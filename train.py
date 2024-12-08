@@ -158,13 +158,11 @@ def train_model(model, model_name, train_loader, val_loader, num_epochs, criteri
 
 
 if __name__ == "__main__":
-    # Example usage:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Training on device: {device}")
-    data_dir = "data/PlantVillage"
+    data_dir = "data/PlantVillage" # "path/to/data/dir"
     num_classes = len(os.listdir(data_dir))
-    # train_loader, val_loader = get_dataloaders(data_dir=data_dir, batch_size=32)
-    train_loader, val_loader = get_dataloaders(data_dir=data_dir, batch_size=4)
+    train_loader, val_loader = get_dataloaders(data_dir=data_dir, img_size=224, batch_size=32) # Minimum image size should be atleast (49, 49)
 
     model = SAGViTClassifier(num_classes=num_classes).to(device)
 

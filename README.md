@@ -2,14 +2,9 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2411.09420-b31b1b.svg)](https://arxiv.org/abs/2411.09420)
 
-## Authors
-**Shravan Venkatraman, Jaskaran Singh Walia, Joe Dhanith P R**
-
-## Introduction
-
 SAG-ViT is a novel framework designed to enhance Vision Transformers (ViT) with scale-awareness and refined patch-level feature embeddings. Traditional ViTs rely on fixed-sized patches extracted directly from images, often missing the multiscale hierarchies naturally captured by CNNs. Our method integrates:
 
-- **CNN-derived multiscale feature extraction**: High-fidelity patches are obtained from CNN feature maps rather than raw pixels.
+- **CNN-derived multiscale feature extraction**: High-fidelity patches are obtained from EfficientNetv2 feature maps rather than raw pixels.
 - **Graph-based patch organization**: Patches are modeled as nodes in a graph, capturing local spatial structures through k-connectivity and feature similarity.
 - **Graph Attention Network (GAT)**: A GAT refines patch embeddings, leveraging attention to emphasize important local relationships.
 - **Transformer Encoder**: Finally, a Transformer encoder integrates these refined embeddings globally, capturing long-range dependencies.
@@ -21,7 +16,7 @@ SAG-ViT consistently outperforms state-of-the-art approaches on diverse benchmar
 The diagram below illustrates our SAG-ViT pipeline, from CNN feature extraction and patching to graph construction, GAT processing, and Transformer-based global reasoning:
 
 <p align="center">
-    <img src="logo/logo.png" alt="SAG-ViT Architecture Overview">
+    <img src="images/SAG-ViT.png" alt="SAG-ViT Architecture Overview">
 </p>
 
 ## Code Structure and Usage
@@ -63,14 +58,8 @@ This repository provides a modular and extensible codebase for training and eval
 ## Getting Started
 
 ### Prerequisites
-- Python >= 3.7
-- PyTorch >= 1.7.0
-- TorchVision
-- Torch Geometric
-- scikit-learn
-- tqdm, pandas, matplotlib, seaborn, networkx
 
-Install dependencies (if you have `requirements.txt`):
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
@@ -130,9 +119,10 @@ SAG-ViT achieves state-of-the-art results across all benchmarks, as shown in the
 
 ## Citation
 
-If you find this work useful, please cite our paper:
-```
-@misc{venkatraman2024sagvitscaleawarehighfidelitypatching,
+If you find our [paper](https://arxiv.org/abs/2411.09420) and [code](https://github.com/shravan-18/SAG-ViT) helpful for your research, please consider citing our work and giving the repository a star:
+
+```bibtex
+@misc{SAGViT,
       title={SAG-ViT: A Scale-Aware, High-Fidelity Patching Approach with Graph Attention for Vision Transformers}, 
       author={Shravan Venkatraman and Jaskaran Singh Walia and Joe Dhanith P R},
       year={2024},

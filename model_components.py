@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import GATConv, global_mean_pool
+from torch_geometric.nn import GATConv, GCNConv, global_mean_pool
 
 from torchvision import models
 
@@ -19,21 +19,57 @@ class EfficientNetV2FeatureExtractor(nn.Module):
     from images using a pre-trained EfficientNetV2-S model. This corresponds 
     to Section 3.1, where a CNN backbone (EfficientNetV2-S) is used to produce rich 
     feature maps that preserve semantic information at multiple scales.
+
+    Feature Extraction Details: 
+    - The model extracts features from all layers except the last downsampling block.  
+    - A pre-trained model on ImageNet (IMAGENET1K_V1) can be used if `pretrained=True`.  
+
+    Unfreezing Mechanism:  
+    - The `unfreeze_blocks` parameter specifies how many of the last feature extraction 
+      blocks should be unfrozen, allowing them to be trained.  
+    - If `unfreeze_blocks` exceeds the total number of available blocks, all layers 
+      are unfrozen.  
+      
+    Parameters:
+    - `pretrained` (bool): If True, loads pretrained EfficientNetV2-S weights. Default is False.  
+    - `unfreeze_blocks` (int): Number of last feature extraction blocks to unfreeze. Default is 6 (all).  
+
+    Inputs:  
+    - `x` (Tensor): Input images of shape (B, C, H, W).  
+
+    Outputs: 
+    - Feature map (Tensor): Extracted features of shape (B, C', H', W').  
     """
-    def __init__(self, pretrained=False):
+    def __init__(self, pretrained=False, unfreeze_blocks=6) -> None:
         super(EfficientNetV2FeatureExtractor, self).__init__()
-        
+
         # Load EfficientNetV2-S with pretrained weights
         efficientnet = models.efficientnet_v2_s(
             weights="IMAGENET1K_V1" if pretrained else None
         )
-        
-        # Extract layers up to the last block before downsampling below 16x16
+
+        # Extract relevant features (all layers except the last downsampling)
         self.extractor = nn.Sequential(*list(efficientnet.features.children())[:-2])
-        
-        # Freezing the extractor parameters (if desired)
+
+        # Total number of available blocks
+        total_blocks = len(list(self.extractor.children()))
+        print("Total blocks: ", total_blocks)
+
+        # Ensure unfreeze_blocks doesn't exceed the max number of blocks
+        unfreeze_blocks = min(unfreeze_blocks, total_blocks)
+
+        # Freeze all layers initially
         for param in self.extractor.parameters():
             param.requires_grad = False
+
+        # Unfreeze last `unfreeze_blocks` blocks
+        if unfreeze_blocks > 0:
+            for block in list(self.extractor.children())[-unfreeze_blocks:]:
+                for param in block.parameters():
+                    param.requires_grad = True
+
+    def forward(self, x):
+        return self.extractor(x)
 
 
     def forward(self, x):
@@ -56,13 +92,13 @@ class GATGNN(nn.Module):
     This module corresponds to the Graph Attention stage (Section 3.3),
     refining local relationships between patches in a learned manner.
     """
-    def __init__(self, in_channels, hidden_channels, out_channels, heads=8):
+    def __init__(self, in_channels, hidden_channels, out_channels, heads=4):
         super(GATGNN, self).__init__()
         # GAT layers: 
         # First layer maps raw patch embeddings to a higher-level representation.
         self.conv1 = GATConv(in_channels, hidden_channels, heads=heads)
-        # Second layer produces final node embeddings with a single head.
-        self.conv2 = GATConv(hidden_channels * heads, out_channels, heads=1)
+        # Final GCN layer for refined representation
+        self.conv2 = GCNConv(hidden_channels * heads, out_channels)
         self.pool = global_mean_pool
 
     def forward(self, data):
@@ -74,10 +110,17 @@ class GATGNN(nn.Module):
         - x (Tensor): Aggregated graph-level embedding after mean pooling.
         """
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        x = F.elu(self.conv1(x, edge_index))
+        
+        # GAT layer with ReLU activation
+        x = F.relu(self.conv1(x, edge_index))
+        
+        # GCN layer for further aggregation
         x = self.conv2(x, edge_index)
-        x = self.pool(x, batch)
-        return x
+        
+        # Global mean pooling to obtain graph-level representation
+        out = self.pool(x, batch)
+        
+        return out
 
 class TransformerEncoder(nn.Module):
     """
