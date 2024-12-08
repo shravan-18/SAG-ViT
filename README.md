@@ -74,6 +74,11 @@ python train.py
 ```
 This will load data using `data_loader.py`, initialize the SAG-ViT model (`SAGViTClassifier`), and train and validate the model, saving the best checkpoint and training history. You can adjust hyperparameters (e.g., learning rate, epochs) directly in `train.py`.
 
+**Running Inference**:
+```bash
+python predict.py --image_path path/to/image.jpg --checkpoint_path path/to/model.pth
+```
+
 **Running Tests**:
 Make sure you have a proper Python environment with the required dependencies installed. Then run:
 ```bash
