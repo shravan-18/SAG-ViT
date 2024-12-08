@@ -98,7 +98,7 @@ We evaluated SAG-ViT on diverse datasets:
 - **NWPU-RESISC45** (remote sensing imagery)
 - **PlantVillage** (agricultural imagery)
 
-SAG-ViT achieves state-of-the-art results across all benchmarks, as shown in the table below (F1 scores):
+SAG-ViT achieves state-of-the-art results across benchmarks, as shown in the table below (F1 scores):
 
 <center>
 
