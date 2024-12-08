@@ -2,7 +2,12 @@ import torch
 from torch import nn
 
 from torch_geometric.data import Batch
-from model_components import EfficientNetV2FeatureExtractor, GATGNN, TransformerEncoder, MLPBlock
+from model_components import (
+    EfficientNetV2FeatureExtractor,
+    GATGNN,
+    TransformerEncoder,
+    MLPBlock,
+)
 from graph_construction import build_graph_from_patches, build_graph_data_from_patches
 
 ###############################################################################
@@ -13,6 +18,7 @@ from graph_construction import build_graph_from_patches, build_graph_data_from_p
 # 3) A Transformer encoder to capture global relationships (Section 3.3),
 # 4) A final MLP classifier.
 ###############################################################################
+
 
 class SAGViTClassifier(nn.Module):
     """
@@ -31,9 +37,10 @@ class SAGViTClassifier(nn.Module):
     Outputs:
     - out (Tensor): Classification logits (B, num_classes)
     """
+
     def __init__(
         self,
-        patch_size=(4,4),
+        patch_size=(4, 4),
         num_classes=10,
         d_model=64,
         nhead=4,
@@ -42,7 +49,7 @@ class SAGViTClassifier(nn.Module):
         hidden_mlp_features=64,
         in_channels=2560,  # Derived from patch dimensions and CNN output channels
         gcn_hidden=128,
-        gcn_out=64
+        gcn_out=64,
     ):
         super(SAGViTClassifier, self).__init__()
 
@@ -50,7 +57,9 @@ class SAGViTClassifier(nn.Module):
         self.cnn = EfficientNetV2FeatureExtractor()
 
         # Graph Attention Network to process patch embeddings
-        self.gcn = GATGNN(in_channels=in_channels, hidden_channels=gcn_hidden, out_channels=gcn_out)
+        self.gcn = GATGNN(
+            in_channels=in_channels, hidden_channels=gcn_hidden, out_channels=gcn_out
+        )
 
         # Learnable positional embedding for Transformer input
         self.positional_embedding = nn.Parameter(torch.randn(1, 1, d_model))
@@ -58,7 +67,9 @@ class SAGViTClassifier(nn.Module):
         self.extra_embedding = nn.Parameter(torch.randn(1, d_model))
 
         # Transformer encoder to capture long-range global dependencies
-        self.transformer_encoder = TransformerEncoder(d_model, nhead, num_layers, dim_feedforward)
+        self.transformer_encoder = TransformerEncoder(
+            d_model, nhead, num_layers, dim_feedforward
+        )
 
         # MLP classification head
         self.mlp = MLPBlock(d_model, hidden_mlp_features, num_classes)
@@ -93,7 +104,10 @@ class SAGViTClassifier(nn.Module):
         patch_embeddings = patch_embeddings + self.positional_embedding  # (B, 1, D)
 
         # Add an extra learnable embedding (like a CLS token)
-        patch_embeddings = torch.cat([patch_embeddings, self.extra_embedding.unsqueeze(0).expand(B, -1, -1)], dim=1)  # (B, 2, D)
+        patch_embeddings = torch.cat(
+            [patch_embeddings, self.extra_embedding.unsqueeze(0).expand(B, -1, -1)],
+            dim=1,
+        )  # (B, 2, D)
 
         # Step 6: Transformer encoder
         x_trans = self.transformer_encoder(patch_embeddings)

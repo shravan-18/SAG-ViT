@@ -13,33 +13,35 @@ from torchvision import models
 # 4. An MLP classifier head.
 ###############################################################
 
+
 class EfficientNetV2FeatureExtractor(nn.Module):
     """
-    Extracts multi-scale, spatially-rich, and semantically-meaningful feature maps 
-    from images using a pre-trained EfficientNetV2-S model. This corresponds 
-    to Section 3.1, where a CNN backbone (EfficientNetV2-S) is used to produce rich 
+    Extracts multi-scale, spatially-rich, and semantically-meaningful feature maps
+    from images using a pre-trained EfficientNetV2-S model. This corresponds
+    to Section 3.1, where a CNN backbone (EfficientNetV2-S) is used to produce rich
     feature maps that preserve semantic information at multiple scales.
 
-    Feature Extraction Details: 
-    - The model extracts features from all layers except the last downsampling block.  
-    - A pre-trained model on ImageNet (IMAGENET1K_V1) can be used if `pretrained=True`.  
+    Feature Extraction Details:
+    - The model extracts features from all layers except the last downsampling block.
+    - A pre-trained model on ImageNet (IMAGENET1K_V1) can be used if `pretrained=True`.
 
-    Unfreezing Mechanism:  
-    - The `unfreeze_blocks` parameter specifies how many of the last feature extraction 
-      blocks should be unfrozen, allowing them to be trained.  
-    - If `unfreeze_blocks` exceeds the total number of available blocks, all layers 
-      are unfrozen.  
-      
+    Unfreezing Mechanism:
+    - The `unfreeze_blocks` parameter specifies how many of the last feature extraction
+      blocks should be unfrozen, allowing them to be trained.
+    - If `unfreeze_blocks` exceeds the total number of available blocks, all layers
+      are unfrozen.
+
     Parameters:
-    - `pretrained` (bool): If True, loads pretrained EfficientNetV2-S weights. Default is False.  
-    - `unfreeze_blocks` (int): Number of last feature extraction blocks to unfreeze. Default is 6 (all).  
+    - `pretrained` (bool): If True, loads pretrained EfficientNetV2-S weights. Default is False.
+    - `unfreeze_blocks` (int): Number of last feature extraction blocks to unfreeze. Default is 6 (all).
 
-    Inputs:  
-    - `x` (Tensor): Input images of shape (B, C, H, W).  
+    Inputs:
+    - `x` (Tensor): Input images of shape (B, C, H, W).
 
-    Outputs: 
-    - Feature map (Tensor): Extracted features of shape (B, C', H', W').  
+    Outputs:
+    - Feature map (Tensor): Extracted features of shape (B, C', H', W').
     """
+
     def __init__(self, pretrained=False, unfreeze_blocks=6) -> None:
         super(EfficientNetV2FeatureExtractor, self).__init__()
 
@@ -71,7 +73,6 @@ class EfficientNetV2FeatureExtractor(nn.Module):
     def forward(self, x):
         return self.extractor(x)
 
-
     def forward(self, x):
         """
         Forward pass through the CNN backbone.
@@ -86,15 +87,17 @@ class EfficientNetV2FeatureExtractor(nn.Module):
         features = self.extractor(x)
         return features
 
+
 class GATGNN(nn.Module):
     """
     A Graph Attention Network (GAT) that processes patch-graph embeddings.
     This module corresponds to the Graph Attention stage (Section 3.3),
     refining local relationships between patches in a learned manner.
     """
+
     def __init__(self, in_channels, hidden_channels, out_channels, heads=4):
         super(GATGNN, self).__init__()
-        # GAT layers: 
+        # GAT layers:
         # First layer maps raw patch embeddings to a higher-level representation.
         self.conv1 = GATConv(in_channels, hidden_channels, heads=heads)
         # Final GCN layer for refined representation
@@ -110,27 +113,33 @@ class GATGNN(nn.Module):
         - x (Tensor): Aggregated graph-level embedding after mean pooling.
         """
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        
+
         # GAT layer with ReLU activation
         x = F.relu(self.conv1(x, edge_index))
-        
+
         # GCN layer for further aggregation
         x = self.conv2(x, edge_index)
-        
+
         # Global mean pooling to obtain graph-level representation
         out = self.pool(x, batch)
-        
+
         return out
+
 
 class TransformerEncoder(nn.Module):
     """
     A Transformer encoder to capture long-range dependencies among patch embeddings.
     Integrates global dependencies after GAT processing, as per Section 3.3.
     """
+
     def __init__(self, d_model, nhead, num_layers, dim_feedforward):
         super(TransformerEncoder, self).__init__()
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward
+        )
+        self.transformer_encoder = nn.TransformerEncoder(
+            encoder_layer, num_layers=num_layers
+        )
 
     def forward(self, x):
         """
@@ -146,16 +155,18 @@ class TransformerEncoder(nn.Module):
         x = x.transpose(0, 1)  # (B, N, D)
         return x
 
+
 class MLPBlock(nn.Module):
     """
     An MLP classification head to map final global embeddings to classification logits.
     """
+
     def __init__(self, in_features, hidden_features, out_features):
         super(MLPBlock, self).__init__()
         self.mlp = nn.Sequential(
             nn.Linear(in_features, hidden_features),
             nn.ReLU(),
-            nn.Linear(hidden_features, out_features)
+            nn.Linear(hidden_features, out_features),
         )
 
     def forward(self, x):

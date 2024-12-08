@@ -8,15 +8,16 @@ from torch_geometric.utils import from_networkx
 # from the CNN feature maps and organized into a graph structure.
 ####################################################################
 
+
 def extract_patches(feature_map, patch_size=(4, 4)):
     """
     Extracts non-overlapping patches from a feature map to form nodes in a graph.
-    
+
     Parameters:
     - feature_map (Tensor): The feature map from the CNN of shape (B, C, H', W').
       H' and W' are reduced spatial dimensions after CNN feature extraction.
     - patch_size (tuple): Spatial size (height, width) of each patch.
-    
+
     Returns:
     - patches (Tensor): Tensor of shape (B, N, C, patch_h, patch_w), where N is the number of patches per image.
     """
@@ -30,6 +31,7 @@ def extract_patches(feature_map, patch_size=(4, 4)):
     patches = patches.permute(0, 2, 3, 1, 4, 5).contiguous()
     patches = patches.view(b, -1, c, patch_h, patch_w)
     return patches
+
 
 def construct_graph_from_patch(patch_index, patch_shape, image_shape):
     """
@@ -57,8 +59,16 @@ def construct_graph_from_patch(patch_index, patch_shape, image_shape):
     G.add_node(current_node)
 
     # 8-neighborhood connectivity (up, down, left, right, diagonals)
-    neighbor_offsets = [(-1, 0), (1, 0), (0, -1), (0, 1), 
-                        (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    neighbor_offsets = [
+        (-1, 0),
+        (1, 0),
+        (0, -1),
+        (0, 1),
+        (-1, -1),
+        (-1, 1),
+        (1, -1),
+        (1, 1),
+    ]
 
     # Recover row, col from patch_index
     row = current_node // grid_width
@@ -73,16 +83,17 @@ def construct_graph_from_patch(patch_index, patch_shape, image_shape):
 
     return G
 
-def build_graph_from_patches(feature_map, patch_size=(4,4)):
+
+def build_graph_from_patches(feature_map, patch_size=(4, 4)):
     """
     Builds a global graph for each image in the batch, where each node corresponds
     to a patch, and edges represent spatial adjacency. This graph captures local
     spatial relationships of the patches, as outlined in Sections 3.1 and 3.2 of SAG-ViT.
-    
+
     Parameters:
     - feature_map (Tensor): CNN output (B, C, H', W').
     - patch_size (tuple): Size of each patch (patch_h, patch_w).
-    
+
     Returns:
     - G_global_batch (list): A list of NetworkX graphs, one per image in the batch.
     - patches (Tensor): The extracted patches (B, N, C, patch_h, patch_w).
@@ -102,12 +113,13 @@ def build_graph_from_patches(feature_map, patch_size=(4,4)):
             G_patch = construct_graph_from_patch(
                 patch_index=patch_idx,
                 patch_shape=patch_size,
-                image_shape=(feature_map.size(2), feature_map.size(3))
+                image_shape=(feature_map.size(2), feature_map.size(3)),
             )
             G_global = nx.compose(G_global, G_patch)
         G_global_batch.append(G_global)
 
     return G_global_batch, patches
+
 
 def build_graph_data_from_patches(G_global_batch, patches):
     """
@@ -123,7 +135,7 @@ def build_graph_data_from_patches(G_global_batch, patches):
       and data.edge_index is the adjacency from the constructed graph.
     """
     from_networkx_ = from_networkx  # local alias to avoid confusion
-    
+
     data_list = []
     batch_size, num_patches, channels, patch_h, patch_w = patches.size()
 
