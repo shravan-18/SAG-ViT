@@ -21,7 +21,7 @@ The diagram below illustrates our SAG-ViT pipeline, from CNN feature extraction 
 
 ## Code Structure and Usage
 
-This repository provides a modular and extensible codebase for training and evaluating SAG-ViT. The code is split into multiple files for clarity. You can also load the model using Hugging Face Hub by following the steps [here](https://huggingface.co/shravvvv/SAG-ViT). 
+This repository provides a modular and extensible codebase for training and evaluating SAG-ViT. The code is split into multiple files for clarity. You can also load the model from **_Hugging Face Hub_** by following the steps [here](https://huggingface.co/shravvvv/SAG-ViT). 
 
 - **`data_loader.py`**:  
   Handles data loading and preprocessing.  
