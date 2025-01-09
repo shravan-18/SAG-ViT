@@ -2,12 +2,13 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2411.09420-b31b1b.svg)](https://arxiv.org/abs/2411.09420)
 
-SAG-ViT is a novel framework designed to enhance Vision Transformers (ViT) with scale-awareness and refined patch-level feature embeddings. Traditional ViTs rely on fixed-sized patches extracted directly from images, often missing the multiscale hierarchies naturally captured by CNNs. Our method integrates:
+SAG-ViT is a novel framework designed to enhance Vision Transformers (ViT) with scale-awareness and refined patch-level feature embeddings. Traditional ViTs rely on fixed-sized patches extracted directly from images, often missing the multiscale hierarchies naturally captured by CNNs. Our contributions are as follows:
 
-- **CNN-derived multiscale feature extraction**: High-fidelity patches are obtained from EfficientNetv2 feature maps rather than raw pixels.
-- **Graph-based patch organization**: Patches are modeled as nodes in a graph, capturing local spatial structures through k-connectivity and feature similarity.
-- **Graph Attention Network (GAT)**: A GAT refines patch embeddings, leveraging attention to emphasize important local relationships.
-- **Transformer Encoder**: Finally, a Transformer encoder integrates these refined embeddings globally, capturing long-range dependencies.
+- High-fidelity patching mechanism that operates on CNN-derived feature maps instead of raw images, enabling the efficient capture of multi-scale features. Unlike traditional patching methods, our approach reduces computational complexity while preserving contextual richness.
+- A unique *k*-connectivity and similarity-based edge weighting scheme is introduced to construct graphs that effectively capture intricate spatial and semantic relationships between patches, addressing the limitations of standard self-attention mechanisms in modeling fine-grained dependencies.
+- We integrate a Graph Attention Network (GAT) with the Transformer architecture, enabling the effective modeling of both local and global dependencies. We justify this shows a significant improvement over existing backbone-driven Transformer-based methods, which often struggle to balance these relationships.
+- SAG-ViT bridges the gap between CNN-based multiscale feature extraction, graph-based representation learning, and Transformers, demonstrating improved and consistent performance in image classification tasks by leveraging hierarchical and relational modeling.
+
 
 SAG-ViT consistently outperforms state-of-the-art approaches on diverse benchmark datasets, showcasing enhanced robustness and generalization.
 
@@ -105,6 +106,8 @@ SAG-ViT achieves state-of-the-art results across benchmarks, as shown in the tab
 
 | Backbone           | CIFAR-10 | GTSRB  | NCT-CRC-HE-100K | NWPU-RESISC45 | PlantVillage |
 |--------------------|----------|--------|-----------------|---------------|--------------|
+| ViT - S (Not Backbone)          | 0.8465   | 0.8542 | 0.8234          | 0.6116        | 0.8654       |
+| ViT - L (Not Backbone)           | 0.8637   | 0.8613 | 0.8345          | 0.8358        | 0.8842       |
 | DenseNet201        | 0.5427   | 0.9862 | 0.9214          | 0.4493        | 0.8725       |
 | Vgg16              | 0.5345   | 0.8180 | 0.8234          | 0.4114        | 0.7064       |
 | Vgg19              | 0.5307   | 0.7551 | 0.8178          | 0.3844        | 0.6811       |
@@ -113,8 +116,6 @@ SAG-ViT achieves state-of-the-art results across benchmarks, as shown in the tab
 | Inception          | 0.7734   | 0.8934 | 0.8707          | 0.8707        | 0.8216       |
 | ResNet             | 0.9172   | 0.9134 | 0.9478          | 0.9103        | 0.8905       |
 | MobileNet          | 0.9169   | 0.3006 | 0.4965          | 0.1667        | 0.2213       |
-| ViT - S            | 0.8465   | 0.8542 | 0.8234          | 0.6116        | 0.8654       |
-| ViT - L            | 0.8637   | 0.8613 | 0.8345          | 0.8358        | 0.8842       |
 | MNASNet1_0         | 0.1032   | 0.0024 | 0.0212          | 0.0011        | 0.0049       |
 | ShuffleNet_V2_x1_0 | 0.3523   | 0.4244 | 0.4598          | 0.1808        | 0.3190       |
 | SqueezeNet1_0      | 0.4328   | 0.8392 | 0.7843          | 0.3913        | 0.6638       |
